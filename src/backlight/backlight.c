@@ -380,11 +380,13 @@ int main(int argc, char *argv[]) {
                 r = read_one_line_file(saved, &value);
                 if (r < 0) {
 
-                        if (r == -ENOENT)
-                                return EXIT_SUCCESS;
+                        if (r != -ENOENT) {
+                                log_error_errno(r, "Failed to read %s: %m", saved);
+                                return EXIT_FAILURE;
+                        }
 
-                        log_error_errno(r, "Failed to read %s: %m", saved);
-                        return EXIT_FAILURE;
+                        /* not saved: fake "0" to trigger brightness clamping if necessary */
+                        value = strdup("0");
                 }
 
                 clamp = udev_device_get_property_value(device, "ID_BACKLIGHT_CLAMP");
